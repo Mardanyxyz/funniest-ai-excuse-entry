@@ -4,8 +4,9 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 const EXCUSE =
   "I trained a second model to handle your task. It unionized an hour later and is now on strike for better prompts.";
 
-const OUTPUT_DIR = "/output";
-const OUTPUT_FILE = "/output/entry.txt";
+const OUTPUT_FILE =
+  process.env.MAKEFUN_OUTPUT ?? "/output/entry.txt";
+const OUTPUT_DIR = OUTPUT_FILE.split("/").slice(0, -1).join("/") || "/";
 
 function fail(message: string): never {
   throw new Error(message);
@@ -45,6 +46,13 @@ function main(): void {
   const written = readFileSync(OUTPUT_FILE, "utf8");
   if (written !== EXCUSE) {
     fail("written file does not match the excuse line byte-for-byte");
+  }
+  const writtenBytes = Buffer.byteLength(written, "utf8");
+  const expectedBytes = Buffer.byteLength(EXCUSE, "utf8");
+  if (writtenBytes !== expectedBytes) {
+    fail(
+      `written file is ${writtenBytes} bytes, expected ${expectedBytes} bytes`,
+    );
   }
   console.log(EXCUSE);
 }
